@@ -3,7 +3,7 @@ using UnityEngine;
 public class ToolSelectButton : MonoBehaviour
 {
 
-    public enum ToolType {PAINT, TAPE, UNDO, RESET}
+    public enum ToolType {PAINT, TAPE, REMOVE_TAPE, UNDO, RESET}
     public ToolType type;
     public ColorSwatch colorSwatch;
     public Color buttonColor;

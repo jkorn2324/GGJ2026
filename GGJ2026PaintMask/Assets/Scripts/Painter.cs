@@ -62,9 +62,15 @@ public class Painter : MonoBehaviour
     void CheckInput()
     {
         if (Input.GetMouseButtonDown(0)){
-            if(paintInputMode == PaintInputMode.OPEN && (currentTool == ToolSelectButton.ToolType.PAINT || currentTool == ToolSelectButton.ToolType.TAPE))
+            if(paintInputMode == PaintInputMode.OPEN)
             {
-                StartPaintStrokeInput();
+                if (currentTool == ToolSelectButton.ToolType.PAINT || currentTool == ToolSelectButton.ToolType.TAPE)
+                {
+                    StartPaintStrokeInput();
+                }else if(currentTool == ToolSelectButton.ToolType.REMOVE_TAPE)
+                {
+                    StartPaintStrokeInput();
+                }
             }
         }
         if (Input.GetMouseButtonUp(0)){
@@ -106,10 +112,22 @@ public class Painter : MonoBehaviour
         Debug.Log("initial input has distance of: " + paintStrokeDistance.magnitude);
         if (paintStrokeDistance.magnitude >= Screen.width * startPaintMovementThreshold) 
         {
-            StartPaintStroke();
+            if (currentTool == ToolSelectButton.ToolType.PAINT || currentTool == ToolSelectButton.ToolType.TAPE)
+            {
+                StartPaintStroke();
+            }else if (currentTool == ToolSelectButton.ToolType.REMOVE_TAPE)
+            {
+                StartRemoveTape();
+            }
         }
     }
 
+    void StartRemoveTape()
+    {
+
+    }
+
+    //Begin Stroke (for both tape & regular strokes)
     void StartPaintStroke()
     {
         Debug.Log("enough input movement to start paintstroke");
@@ -149,6 +167,9 @@ public class Painter : MonoBehaviour
         paintInputMode = PaintInputMode.OPEN;
     }
 
+
+    //End Stroke(for when player releases, etc)
+    //Release Tape(for when player releases the tape)
     void EndPaintStroke()
     {
         Debug.Log("ending paintstroke");
@@ -156,6 +177,7 @@ public class Painter : MonoBehaviour
         //paintInputMode = PaintInputMode.ENDING;
     }
 
+    //Update Stroke (for when player is setting the direction of the stroke)
     void MovePaintStroke()
     {
         SetPaintStrokeVector();
