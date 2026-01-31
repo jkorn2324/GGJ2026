@@ -7,6 +7,7 @@ public class Painter : MonoBehaviour
     public Color currentColor;
     public ToolSelectButton.ToolType currentTool;
     public Painting currentPainting;
+    public RectTransform paintingCanvas;
 
     public enum PaintInputMode { DISABLED, OPEN, STARTING, MOVING, HELD, ENDING }
     public PaintInputMode paintInputMode;
@@ -17,18 +18,39 @@ public class Painter : MonoBehaviour
 
     public float startPaintMovementThreshold = .02f;
 
-    public float paintWidth = 5f;
-    public float paintInitialHeight = 1f;
+    public float paintWidth = 0.2f;
+    public float paintInitialHeight = 0.05f;
+
+    public float tapeWidth = 0.05f;
+    public float tapeInitialHeight = 0.02f;
 
     private float paintStrokeAngle;
     private Vector3 paintStrokeStartPos;
     private Vector3 paintStrokeCurrentPos;
     private Vector3 paintStrokeDistance;
 
+    public bool allowDirectionChangeMidStroke;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         paintInputMode = PaintInputMode.OPEN;
+        SetPaintTapeDimensions();
+    }
+
+    void SetPaintTapeDimensions()
+    {
+        paintWidth = SetRelativeToCanvasHeight(paintWidth);
+        paintInitialHeight = SetRelativeToCanvasHeight(paintInitialHeight);
+        tapeWidth = SetRelativeToCanvasHeight(tapeWidth);
+        tapeInitialHeight = SetRelativeToCanvasHeight(tapeInitialHeight);
+    }
+
+    float SetRelativeToCanvasHeight(float multiplier)
+    {
+        float relativeValue;
+        relativeValue = multiplier * paintingCanvas.rect.height;
+        return relativeValue;
     }
 
     // Update is called once per frame
@@ -40,7 +62,7 @@ public class Painter : MonoBehaviour
     void CheckInput()
     {
         if (Input.GetMouseButtonDown(0)){
-            if(paintInputMode == PaintInputMode.OPEN && (currentTool == ToolSelectButton.ToolType.PAINT))
+            if(paintInputMode == PaintInputMode.OPEN && (currentTool == ToolSelectButton.ToolType.PAINT || currentTool == ToolSelectButton.ToolType.TAPE))
             {
                 StartPaintStrokeInput();
             }
@@ -96,14 +118,25 @@ public class Painter : MonoBehaviour
 
         SetPaintStrokeVector();
 
-        paintStrokeStartPos = Input.mousePosition;
-
-
         paintLayer = GameObject.Instantiate(paintLayerFab);
         paintLayer.color = currentColor;
         paintLayerRect = paintLayer.GetComponent<RectTransform>();
         paintLayerRect.position = paintStrokeStartPos;
-        paintLayerRect.sizeDelta = new Vector2(paintWidth, paintInitialHeight);
+
+        if (currentTool == ToolSelectButton.ToolType.PAINT)
+        {
+            paintLayerRect.sizeDelta = new Vector2(paintWidth, paintInitialHeight);
+        }
+        else if (currentTool == ToolSelectButton.ToolType.TAPE)
+        {
+            paintLayerRect.sizeDelta = new Vector2(tapeWidth, tapeInitialHeight);
+        }
+
+        //paintStrokeStartPos = Input.mousePosition;
+
+
+
+
         paintLayerRect.rotation = Quaternion.Euler(new Vector3(0f,0f,paintStrokeAngle));
         paintLayer.transform.SetParent(currentPainting.transform);
     }
@@ -139,8 +172,46 @@ public class Painter : MonoBehaviour
 
     void SetPaintStrokeTransform()
     {
-        paintLayerRect.sizeDelta = new Vector2(paintWidth, paintStrokeDistance.magnitude);
-        paintLayerRect.rotation = Quaternion.Euler(new Vector3(0f, 0f, paintStrokeAngle));
+
+        //the length of paint/tape CANNOT decrease, only increase
+        //movement of input along the axis of the paint/tape line increases the length
+        //movement of input in any other direction (perpendicular to axis, or opposite direction) has no effect on length
+        float newPaintLength;
+
+
+        if (allowDirectionChangeMidStroke)
+        {
+            newPaintLength = paintStrokeDistance.magnitude;
+        }
+        else
+        {
+            if (paintStrokeDistance.magnitude > paintLayerRect.rect.height)
+            {
+                newPaintLength = paintStrokeDistance.magnitude;
+            }
+            else
+            {
+                newPaintLength = paintLayerRect.rect.height;
+            }
+
+            
+        }
+
+        float width = 0;
+        if (currentTool == ToolSelectButton.ToolType.PAINT)
+        {
+            width = paintWidth;
+        }
+        else if (currentTool == ToolSelectButton.ToolType.TAPE)
+        {
+            width = tapeWidth;
+        }
+        paintLayerRect.sizeDelta = new Vector2(width, newPaintLength);
+
+        if (allowDirectionChangeMidStroke)
+        {
+            paintLayerRect.rotation = Quaternion.Euler(new Vector3(0f, 0f, paintStrokeAngle));
+        }
     }
 
     public void SelectTool (ToolSelectButton tool)
