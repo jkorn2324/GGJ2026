@@ -88,6 +88,12 @@ namespace GGJ2026.Painting
             }*/
         }
 
+        public void SetColor(Color c)
+        {
+            this.GetComponent<Image>().color = c;
+            buttonColor = c;
+        }
+
         // Update is called once per frame
         void Update()
         {
