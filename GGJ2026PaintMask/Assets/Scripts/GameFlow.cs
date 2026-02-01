@@ -280,7 +280,7 @@ namespace GGJ2026.Painting
         
         private void OnRoundFinished(Round obj)
         {
-            Debug.Log("Round has finished.")
+            Debug.Log("Round has finished.");
             // Gets called when the round has finished calculating the result.
             var candidateResult = obj.GameResult;
             if (candidateResult == null)
