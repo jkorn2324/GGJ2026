@@ -15,6 +15,7 @@ public class GameFlow : MonoBehaviour
     public Painter painter;
     public ToolSelectButtonGroup toolSelectButtons;
     public GameObject timer;
+    public AudioManager audio;
 
 
     //timer for countdown to round end
@@ -132,6 +133,7 @@ public class GameFlow : MonoBehaviour
     void PrepareEndRound()
     {
         Debug.Log("round over!");
+        audio.PlayTimerSFX();
         roundActive = false;
         DisableToolButtons();
         DisablePaintInput();

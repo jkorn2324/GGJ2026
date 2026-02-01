@@ -32,6 +32,8 @@ public class Painter : MonoBehaviour
 
     public bool allowDirectionChangeMidStroke;
 
+    public AudioManager audio;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -171,6 +173,8 @@ public class Painter : MonoBehaviour
         Debug.Log("starting paint input");
         paintInputMode = PaintInputMode.STARTING;
         paintStrokeStartPos = Input.mousePosition;
+
+        
     }
 
     //starting the input for removing tape (plays the frame that mouse is down)
@@ -210,6 +214,14 @@ public class Painter : MonoBehaviour
     void StartPaintStroke()
     {
         Debug.Log("enough input movement to start paintstroke");
+        if (currentTool == ToolSelectButton.ToolType.PAINT)
+        {
+            audio.PlayPaintSFX();
+        }
+        else if (currentTool == ToolSelectButton.ToolType.TAPE)
+        {
+            audio.PlayTapeApplySFX();
+        }
 
         paintInputMode = PaintInputMode.MOVING;
 
@@ -243,7 +255,7 @@ public class Painter : MonoBehaviour
     void StartRemoveTape()
     {
         Debug.Log("enough input movement to start removing tape");
-
+        audio.PlayTapeRemoveSFX();
         paintInputMode = PaintInputMode.MOVING;
 
         
