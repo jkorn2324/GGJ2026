@@ -9,6 +9,7 @@ namespace GGJ2026.Painting
     {
         public enum ToolType
         {
+            NONE,
             PAINT,
             TAPE,
             REMOVE_TAPE,

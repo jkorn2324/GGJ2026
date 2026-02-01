@@ -221,6 +221,8 @@ namespace GGJ2026.Painting
         void DisableToolButtons()
         {
             Debug.Log("tool buttons are disabled");
+            toolSelectButtons.SetToolSelected(null);
+            painter.ResetCurrentTool();
             toolSelectButtons.gameObject.SetActive(false);
         }
 

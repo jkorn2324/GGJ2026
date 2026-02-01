@@ -336,5 +336,11 @@ namespace GGJ2026.Painting
 
             Debug.Log("setting tool to: " + tool.type + " with color: " + tool.buttonColor);
         }
+
+        //reset the selected tool to none
+        public void ResetCurrentTool()
+        {
+            currentTool = ToolSelectButton.ToolType.NONE;
+        }
     }
 }
