@@ -75,13 +75,13 @@
             float4 load_stroke_texel(int texel_index)
             {
                 float u = (texel_index + 0.5) * _StrokeTex_TexelSize.x;
-                return tex2D(_StrokeTex, float2(u, 0.5));
+                return tex2Dlod(_StrokeTex, float4(u, 0.5, 0, 0)); // LOD 0
             }
 
             float4 load_tape_texel(int texel_index)
             {
                 float u = (texel_index + 0.5) * _TapeTex_TexelSize.x;
-                return tex2D(_TapeTex, float2(u, 0.5));
+                return tex2Dlod(_TapeTex, float4(u, 0.5, 0, 0));   // LOD 0
             }
 
             // Returns:

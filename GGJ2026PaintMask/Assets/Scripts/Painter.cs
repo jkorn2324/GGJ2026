@@ -221,7 +221,8 @@ namespace GGJ2026.Painting
                     new ArtistLineInfo(color: currentColor,
                         startPos: castedPosition,
                         inWidth: currentTool == ToolSelectButton.ToolType.PAINT ? paintWidth : tapeWidth,
-                        inEdgeRoundness: paintWidth * 0.5f),
+                        inEdgeRoundness: currentTool == ToolSelectButton.ToolType.TAPE ? 0.0f : paintWidth * 0.5f,
+                        inEdgeSmoothness: currentTool == ToolSelectButton.ToolType.TAPE ? 0.0f : paintWidth * 0.25f),
                     inIsTape: currentTool == ToolSelectButton.ToolType.TAPE))
             {
                 paintInputMode = PaintInputMode.MOVING;
