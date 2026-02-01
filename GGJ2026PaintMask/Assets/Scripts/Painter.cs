@@ -185,7 +185,7 @@ public class Painter : MonoBehaviour
     void CheckForPaintStrokeMovement()
     {
         paintStrokeDistance = Input.mousePosition - paintStrokeStartPos;
-        Debug.Log("initial input for paintstroke has distance of: " + paintStrokeDistance.magnitude);
+        //Debug.Log("initial input for paintstroke has distance of: " + paintStrokeDistance.magnitude);
         if (paintStrokeDistance.magnitude >= Screen.width * startPaintMovementThreshold) 
         {
             //start movement detection for applying paint or tape

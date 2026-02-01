@@ -141,6 +141,7 @@ public class GameFlow : MonoBehaviour
 
     void DisableToolButtons()
     {
+        toolSelectButtons.DeactivateOtherToolButtons(null);
         Debug.Log("tool buttons are disabled");
         toolSelectButtons.gameObject.SetActive(false);
 

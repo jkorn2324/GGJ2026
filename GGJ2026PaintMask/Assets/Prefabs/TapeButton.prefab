@@ -12,12 +12,12 @@ GameObject:
   - component: {fileID: 996951732695244327}
   - component: {fileID: 1149964843367166502}
   m_Layer: 5
-  m_Name: PaintFill
+  m_Name: ButtonImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &365617230899226862
 RectTransform:
   m_ObjectHideFlags: 0
@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a040e090ab840f04d96350d5843e75f6, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1c9dbd0cffa24414ab8b655deecf91e9, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -136,15 +136,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 1c9dbd0cffa24414ab8b655deecf91e9, type: 3}
-  m_Type: 0
+  m_Sprite: {fileID: 10917, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -196,7 +196,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2169127874482164181}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 455681420411041840}
+        m_TargetAssemblyTypeName: ToolSelectButton, Assembly-CSharp
+        m_MethodName: SetActiveTool
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &455681420411041840
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -212,3 +224,7 @@ MonoBehaviour:
   type: 1
   colorSwatch: {fileID: 0}
   buttonColor: {r: 1, g: 0.8352942, b: 0.48235297, a: 0}
+  hoverDistance: 0
+  hoverLoopTime: 0
+  activeTool: 0
+  startPosition: {x: 0, y: 0, z: 0}

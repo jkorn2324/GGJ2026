@@ -13,4 +13,15 @@ public class ToolSelectButtonGroup : MonoBehaviour
     {
         
     }
+
+    public void DeactivateOtherToolButtons(Transform activeTool)
+    {
+        foreach(Transform toolButton in transform)
+        {
+            if(toolButton != activeTool)
+            {
+                toolButton.GetComponent<ToolSelectButton>().SetInactiveTool();
+            }
+        }
+    }
 }
