@@ -1,9 +1,20 @@
-﻿namespace GGJ2026.Painting
+﻿using GGJ2026.Utils;
+using UnityEngine;
+
+namespace GGJ2026.Painting
 {
+    /// <summary>
+    /// The artist painting comparison.
+    /// </summary>
     public static class ArtistPaintingComparison
     {
-        
-        public static float CalculateComparisonScore(ArtistPainting original, ArtistPainting compared)
+        /// <summary>
+        /// Calculates the comparison score.
+        /// </summary>
+        /// <param name="original">The original painting.</param>
+        /// <param name="compared">The compared painting.</param>
+        /// <returns>An awaitable for score.</returns>
+        public static async Awaitable<float> CalculatePaintingPixelsComparison(ArtistPainting original, ArtistPainting compared)
         {
             if (original == null 
                 || compared == null
@@ -12,7 +23,6 @@
             {
                 return 0.0f;
             }
-
             // Initialize the original vs compared.
             var originalPainting = ArtistCanvasDrawer.New();
             originalPainting.SetPainting(original);
@@ -22,10 +32,14 @@
             comparedPainting.SetPainting(compared);
             comparedPainting.Render();
             
-            // TODO: Implementation - Compare the pixels here.
+            var commonSize = TextureUtil.GetCommonSize(
+                originalPainting.TargetRT, comparedPainting.TargetRT);
+            var result = await TextureUtil.CompareRenderTextures(
+                originalPainting.TargetRT, comparedPainting.TargetRT, commonSize,
+                ignoreAlpha: false, useLuma: false);
             ArtistCanvasDrawer.Release(ref originalPainting);
             ArtistCanvasDrawer.Release(ref comparedPainting);
-            return 0.0f;
+            return result;
         }
     }
 }

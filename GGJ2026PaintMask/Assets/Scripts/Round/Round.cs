@@ -7,9 +7,32 @@ namespace GGJ2026.Painting
     /// <summary>
     /// The round.
     /// </summary>
-    public class Round
+    public sealed class Round
     {
         #region structures
+
+        public struct Listener
+        {
+            public System.Action<Round> OnRoundFinished;
+
+            public void Initialize(Round round)
+            {
+                if (round == null)
+                {
+                    return;
+                }
+                round.OnRoundFinished += OnRoundFinished;
+            }
+
+            public void DeInitialize(Round round)
+            {
+                if (round == null)
+                {
+                    return;
+                }
+                round.OnRoundFinished -= OnRoundFinished;
+            }
+        }
 
         public struct InitParams
         {
@@ -17,17 +40,40 @@ namespace GGJ2026.Painting
             public readonly float ForgerPaintingTimeSecs;
             public readonly int ForgersCount;
             public readonly Vector2 PaintingSize;
+            public readonly ArtistPaintingScoring.ScoringSettings ScoringSettings;
             
-            public InitParams(Vector2 paintingSize, float totalArtistPaintingTimeSecs, float forgerPaintingTimeSecs, int forgersCount)
+            public InitParams(Vector2 paintingSize, 
+                float totalArtistPaintingTimeSecs, float forgerPaintingTimeSecs, 
+                int forgersCount, ArtistPaintingScoring.ScoringSettings inScoringSettings)
             {
                 TotalArtistPaintingTimeSecs = totalArtistPaintingTimeSecs;
                 ForgerPaintingTimeSecs = forgerPaintingTimeSecs;
                 ForgersCount = forgersCount;
                 PaintingSize = paintingSize;
+                ScoringSettings = inScoringSettings;
             }
-            
-            public static readonly InitParams Default = new InitParams(
-                new Vector2(Screen.width, Screen.height), 60.0f, 60.0f, 1);
+        }
+
+        /// <summary>
+        /// The game's result.
+        /// </summary>
+        public struct Result
+        {
+            public readonly float ForgersScore;
+            public readonly bool DidForgersWin;
+
+            public Result(float inForgersScore, bool inDidForgersWin)
+            {
+                ForgersScore = inForgersScore;
+                DidForgersWin = inDidForgersWin;
+            }
+
+            public static async Awaitable<Result> DetermineResult(ArtistPainting artist, ArtistPainting forger,
+                ArtistPaintingScoring.ScoringSettings scoringSettings)
+            {
+                var scoring = await ArtistPaintingScoring.CalculateForgerScore(scoringSettings, artist, forger);
+                return new Result(scoring, inDidForgersWin: scoringSettings.DidForgerWin(scoring));
+            }
         }
         
         #endregion
@@ -54,9 +100,14 @@ namespace GGJ2026.Painting
         
         #endregion
 
+        /// <summary>
+        /// Called when the game is finished.
+        /// </summary>
+        public event System.Action<Round> OnRoundFinished;
+        
         private ArtistPainting _artistPainting, _forgerPainting;
         private List<Player> _currentPlayers;
-        
+
         /// <summary>
         /// The current player painting.
         /// </summary>
@@ -80,7 +131,17 @@ namespace GGJ2026.Painting
         /// The current player.
         /// </summary>
         public Player CurrentPlayer => GetPlayer(CurrentPlayerIndex);
-        
+
+        /// <summary>
+        /// The game result.
+        /// </summary>
+        public Result? GameResult { get; private set; } = null;
+
+        /// <summary>
+        /// Determines if the round is completed.
+        /// </summary>
+        public bool DidCompleteRound => GameResult != null;
+
         public ArtistPainting CurrentPainting => GetPainting(CurrentPlayer?.PlayerType ?? Player.Type.Unknown);
         
         public float CurrentPlayerTimeLimit => GetPlayerTimeLimit(CurrentPlayer?.PlayerType ?? Player.Type.Unknown);
@@ -108,6 +169,7 @@ namespace GGJ2026.Painting
                 }
             }
             Params = initParams;
+            GameResult = null;
             _artistPainting = ArtistPainting.New(initParams.PaintingSize);
             _forgerPainting = ArtistPainting.New(initParams.PaintingSize);
             IsPlaying = false;
@@ -130,6 +192,7 @@ namespace GGJ2026.Painting
                 ListPool<Player>.Release(_currentPlayers);
                 _currentPlayers = null;
             }
+            GameResult = null;
             Params = default;
             ArtistPainting.Release(ref _artistPainting);
             ArtistPainting.Release(ref _forgerPainting);
@@ -149,6 +212,7 @@ namespace GGJ2026.Painting
             CurrentPlayerIndex = 0;
             _artistPainting.Clear();
             _forgerPainting.Clear();
+            GameResult = null;
             IsPlaying = true;
             return true;
         }
@@ -160,8 +224,23 @@ namespace GGJ2026.Painting
                 return false;
             }
             CurrentPlayerIndex = newPlayerIndex;
-            // TODO: 
+            if (newPlayerIndex >= _currentPlayers.Count)
+            {
+                OnGameCompleted();
+            }
             return true;
+        }
+
+        private async void OnGameCompleted()
+        {
+            var newResult = await Result.DetermineResult(
+                ArtistPainting, ForgerPainting, Params.ScoringSettings);
+            if (!IsInitialized)
+            {
+                return;
+            }
+            GameResult = newResult;
+            OnRoundFinished?.Invoke(this);
         }
 
         /// <summary>
