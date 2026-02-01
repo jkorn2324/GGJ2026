@@ -18,6 +18,9 @@ namespace GGJ2026.Painting
         [Header("References")] 
         [SerializeField, Tooltip("The raw image.")]
         private RawImage rawImage;
+        [Space] 
+        [SerializeField, Tooltip("Override render texture. Leave none to use the raw canvas drawer.")]
+        private RenderTexture overrideRenderTexture;
         
         private ArtistCanvasDrawer _drawer;
         private RectTransform _rawImageRect;
@@ -91,12 +94,22 @@ namespace GGJ2026.Painting
 
         private void LateUpdate()
         {
-            if (rawImage && rawImage.texture != _drawer.TargetRT)
+            var renderTexture = overrideRenderTexture ? overrideRenderTexture : _drawer?.TargetRT;
+            if (rawImage && rawImage.texture != renderTexture)
             {
-                rawImage.texture = _drawer.TargetRT;
+                rawImage.texture = renderTexture;
             }
+            Render();
+        }
+
+        private void Render()
+        {
             // Renders the painting here.
             _drawer?.Render();
+            if (overrideRenderTexture)
+            {
+                Graphics.Blit(_drawer?.TargetRT, overrideRenderTexture);
+            }
         }
     }
 }
