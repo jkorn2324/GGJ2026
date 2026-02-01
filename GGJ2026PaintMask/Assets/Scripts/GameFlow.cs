@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 using System.Collections.Generic;
 
 public class GameFlow : MonoBehaviour
@@ -13,12 +14,15 @@ public class GameFlow : MonoBehaviour
 
     public Painter painter;
     public ToolSelectButtonGroup toolSelectButtons;
+    public GameObject timer;
+
 
     //timer for countdown to round end
     public float timeRemaining;
 
     //is the game during a round?
     public bool roundActive;
+
 
 
     #region GAME_START
@@ -85,6 +89,7 @@ public class GameFlow : MonoBehaviour
 
     void StartTimer()
     {
+        timer.SetActive(true);
         timeRemaining = playerTeams[currentPlayerTeam].timeLimit;
         Debug.Log("clock has been started! This many seconds on the clock: " + timeRemaining);
     }
@@ -104,10 +109,21 @@ public class GameFlow : MonoBehaviour
     {
         timeRemaining -= Time.deltaTime;
         //Debug.Log("time remaining: " + timeRemaining);
-        if(timeRemaining <= 0)
+
+        if (timeRemaining <= 0)
         {
             PrepareEndRound();
         }
+        else
+        {
+            SetTimerText();
+        }
+    }
+
+    void SetTimerText()
+    {
+        int timerInteger = (int)timeRemaining;
+        timer.transform.Find("TimerText").GetComponent<TMP_Text>().text = timerInteger.ToString();
     }
     #endregion
 
@@ -119,6 +135,7 @@ public class GameFlow : MonoBehaviour
         roundActive = false;
         DisableToolButtons();
         DisablePaintInput();
+        DisableTimer();
 
         //mayube add time for animations and feedback before ending the round
         EndRound();
@@ -137,6 +154,11 @@ public class GameFlow : MonoBehaviour
             //start ending the game
             PrepareEndgame();
         }
+    }
+
+    void DisableTimer()
+    {
+        timer.SetActive(false);
     }
 
     void DisableToolButtons()
