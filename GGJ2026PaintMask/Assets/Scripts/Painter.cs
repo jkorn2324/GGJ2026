@@ -9,6 +9,7 @@ public class Painter : MonoBehaviour
     public Painting currentPainting;
     public RectTransform paintingCanvas;
 
+    //NOTE: these states are used for multiple types of input: applying paint, applying tape, removing tape
     public enum PaintInputMode { DISABLED, OPEN, STARTING, MOVING, HELD, ENDING }
     public PaintInputMode paintInputMode;
 
@@ -61,80 +62,146 @@ public class Painter : MonoBehaviour
 
     void CheckInput()
     {
-        if (Input.GetMouseButtonDown(0)){
-            if(paintInputMode == PaintInputMode.OPEN)
-            {
-                if (currentTool == ToolSelectButton.ToolType.PAINT || currentTool == ToolSelectButton.ToolType.TAPE)
-                {
-                    StartPaintStrokeInput();
-                }else if(currentTool == ToolSelectButton.ToolType.REMOVE_TAPE)
-                {
-                    StartPaintStrokeInput();
-                }
-            }
+
+        
+        if (Input.GetMouseButtonDown(0))
+        {
+            OnInputDown();
         }
-        if (Input.GetMouseButtonUp(0)){
-            if(paintInputMode == PaintInputMode.STARTING)
-            {
-                EndPaintStrokeInput();
-            }
-            if (paintInputMode == PaintInputMode.MOVING || paintInputMode == PaintInputMode.HELD)
-            {
-                EndPaintStroke();
-            }
+        if (Input.GetMouseButtonUp(0))
+        {
+            OnInputUp();
         }
         if (Input.GetMouseButton(0))
         {
-            if(paintInputMode == PaintInputMode.STARTING)
+            OnInputHeld();
+        }
+    }
+
+    //plays first frame when mouse/touch is down
+    void OnInputDown()
+    {
+        if (paintInputMode == PaintInputMode.OPEN)
+        {
+
+            if (currentTool == ToolSelectButton.ToolType.PAINT || currentTool == ToolSelectButton.ToolType.TAPE)
+            {
+                //TO DO: add condition to confirm input happens in the appropriate play area
+                StartPaintStrokeInput();
+            }
+            else if (currentTool == ToolSelectButton.ToolType.REMOVE_TAPE)
+            {
+                //TO DO: add condition to confirm input happens close enough to the end of a piece of tape
+                StartRemoveTapeInput();
+            }
+
+        }
+    }
+
+    //plays on any frame when mouse/touch is down
+    void OnInputHeld()
+    {
+        //if input state is down, but BEFORE it is confirmed to have enough movement to trigger an action (paint apply, tape apply, tape removal)
+        if (paintInputMode == PaintInputMode.STARTING)
+        {
+
+            //for applying paint and tape
+            if (currentTool == ToolSelectButton.ToolType.PAINT || currentTool == ToolSelectButton.ToolType.TAPE)
             {
                 CheckForPaintStrokeMovement();
             }
-            if(paintInputMode == PaintInputMode.MOVING)
+
+            //for removing tape
+            else if (currentTool == ToolSelectButton.ToolType.REMOVE_TAPE)
             {
+                CheckForRemoveTapeMovement();
+            }
+
+        }
+
+        //if input state is actively moving, AND has already been confirmed to be an action (paint apply, tape apply, tape removal)
+        else if (paintInputMode == PaintInputMode.MOVING)
+        {
+            //for applying paint and tape
+            if (currentTool == ToolSelectButton.ToolType.PAINT || currentTool == ToolSelectButton.ToolType.TAPE)
+            {
+                //move the paint / tape line
                 MovePaintStroke();
+            }
+
+            //for removing tape
+            else if (currentTool == ToolSelectButton.ToolType.REMOVE_TAPE)
+            {
+                //adjust the position of the tape being removed
+                MoveRemovedTape();
+            }
+
+        }
+    }
+
+    //plays on frame when mouse/touch is released
+    void OnInputUp()
+    {
+        //if input did NOT have enough movement to confirm as an action (paint apply, tape apply, tape removal)
+        if (paintInputMode == PaintInputMode.STARTING)
+        {
+            EndInputWithoutAction();
+        }
+        if (paintInputMode == PaintInputMode.MOVING || paintInputMode == PaintInputMode.HELD)
+        {
+            if (currentTool == ToolSelectButton.ToolType.PAINT || currentTool == ToolSelectButton.ToolType.TAPE)
+            {
+                EndPaintStroke();
+            }
+            else if (currentTool == ToolSelectButton.ToolType.REMOVE_TAPE)
+            {
+                EndRemoveTape();
             }
         }
     }
 
+    //starting the input for applying paint or tape (plays the frame that mouse is down)
     void StartPaintStrokeInput()
     {
         Debug.Log("starting paint input");
         paintInputMode = PaintInputMode.STARTING;
         paintStrokeStartPos = Input.mousePosition;
-
-
     }
 
+    //starting the input for removing tape (plays the frame that mouse is down)
+    void StartRemoveTapeInput()
+    {
+        Debug.Log("starting input for removing tape");
+        paintInputMode = PaintInputMode.STARTING;
+        paintStrokeStartPos = Input.mousePosition;
+    }
+
+    //the user has to move the press enough to actually start painting, just holding the press in a single spot doesn't paint
     void CheckForPaintStrokeMovement()
     {
-        //the user has to move the press enough to actually start painting, just holding the press in a single spot doesn't paint
         paintStrokeDistance = Input.mousePosition - paintStrokeStartPos;
-        Debug.Log("initial input has distance of: " + paintStrokeDistance.magnitude);
+        Debug.Log("initial input for paintstroke has distance of: " + paintStrokeDistance.magnitude);
         if (paintStrokeDistance.magnitude >= Screen.width * startPaintMovementThreshold) 
         {
-
-            //if current tool type is paint or tape
-            if (currentTool == ToolSelectButton.ToolType.PAINT || currentTool == ToolSelectButton.ToolType.TAPE)
-            {
-                //start movement detection for applying paint or tape
-                StartPaintStroke();
-
-            //if current tool type is remove tape
-            }else if (currentTool == ToolSelectButton.ToolType.REMOVE_TAPE)
-            {
-                //start movement detection for removing tape
-                //also, check that the mouse click is within range of the end of a piece of tape
-                StartRemoveTape();
-            }
+            //start movement detection for applying paint or tape
+            StartPaintStroke();
         }
     }
 
-    void StartRemoveTape()
+    //the user has to move the press enough to actually start removing tape, just holding the press in a single spot doesn't cut it
+    void CheckForRemoveTapeMovement()
     {
-        
+        paintStrokeDistance = Input.mousePosition - paintStrokeStartPos;
+        Debug.Log("initial input for tape removal has distance of: " + paintStrokeDistance.magnitude);
+        if (paintStrokeDistance.magnitude >= Screen.width * startPaintMovementThreshold)
+        {
+            //start movement detection for applying paint or tape
+            StartRemoveTape();
+        }
     }
 
     //Begin Stroke (for both tape & regular strokes)
+    //this plays as soon as the amount of input movement is enough to be considered a swipe
     void StartPaintStroke()
     {
         Debug.Log("enough input movement to start paintstroke");
@@ -166,11 +233,22 @@ public class Painter : MonoBehaviour
         paintLayer.transform.SetParent(currentPainting.transform);
     }
 
-    void EndPaintStrokeInput()
+    //Begin removing tape
+    //this plays as soon as the amount of input movement is enough to be considered a swipe
+    void StartRemoveTape()
     {
-        //if user lifted the press without actually starting a paintstroke (not enough movement)
-        //revert to open state without making a paintstroke
-        Debug.Log("not enough movement to start paintstroke");
+        Debug.Log("enough input movement to start removing tape");
+
+        paintInputMode = PaintInputMode.MOVING;
+
+        
+    }
+
+    void EndInputWithoutAction()
+    {
+        //if user lifted the press without actually starting an acftion(not enough movement)
+        //revert to open state without applying paint, tape, or tape removal
+        Debug.Log("not enough movement to start action");
         paintInputMode = PaintInputMode.OPEN;
     }
 
@@ -187,6 +265,7 @@ public class Painter : MonoBehaviour
     //Update Stroke (for when player is setting the direction of the stroke)
     void MovePaintStroke()
     {
+        Debug.Log("actively applying paint/tape with movement");
         SetPaintStrokeVector();
 
         SetPaintStrokeTransform();
@@ -241,6 +320,17 @@ public class Painter : MonoBehaviour
         {
             paintLayerRect.rotation = Quaternion.Euler(new Vector3(0f, 0f, paintStrokeAngle));
         }
+    }
+
+    //calls every frame that the user is moving input to remove tape
+    void MoveRemovedTape()
+    {
+            Debug.Log("actively removing tape");
+    }
+
+    void EndRemoveTape()
+    {
+        Debug.Log("ending input for tape removal");
     }
 
     public void SelectTool (ToolSelectButton tool)
