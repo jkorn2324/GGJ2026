@@ -297,13 +297,31 @@ namespace GGJ2026.Painting
                 WriteTexelRgbaHalf(raw, baseTexel + 1, seg.Color.r, seg.Color.g, seg.Color.b, widthPixels);
                 WriteTexelRgbaHalf(raw, baseTexel + 2, seg.Color.a, featherPixels, roundCaps01, 0f);
             }
+            // Sets the current line.
+            if (_painting.CurrentLine != null)
+            {
+                var currentLine = (ArtistPainting.ActiveLineInfo)_painting.CurrentLine;
+                if (!currentLine.IsTape)
+                {
+                    var baseTexel = strokeCount * StrokeTexelsPerStroke;
+                    var seg = currentLine.Line;
+                    var startUv = MathUtil.ToUv(seg.StartPosition, targetSizePixels);
+                    var endUv   = MathUtil.ToUv(seg.EndPosition, targetSizePixels);
+                    var widthPixels   = seg.Width;
+                    var featherPixels = seg.EdgeSmoothness;
+                    var roundCaps01   = seg.EdgeRoundness;
+                    WriteTexelRgbaHalf(raw, baseTexel + 0, startUv.x, startUv.y, endUv.x, endUv.y);
+                    WriteTexelRgbaHalf(raw, baseTexel + 1, seg.Color.r, seg.Color.g, seg.Color.b, widthPixels);
+                    WriteTexelRgbaHalf(raw, baseTexel + 2, seg.Color.a, featherPixels, roundCaps01, 0f);
+                }
+            }
             _strokeTex.Apply(false, false);
         }
 
         /// <summary>
         /// Tape packing must match shader (4 texels per tape):
         /// - T0: startUV.xy, endUV.xy
-        /// - T1: widthPixels, startStrokeIndex, finishedStrokeIndex, reserved
+        /// - T1: widthPixels, startStrokeIndex, affectedStrokeCount, isFinished
         /// - T2: color.rgba
         /// - T3: featherPixels, roundCaps01, reserved, reserved
         /// </summary>
@@ -330,14 +348,32 @@ namespace GGJ2026.Painting
                 var startUv = MathUtil.ToUv(tapeLine.StartPosition, targetSizePixels);
                 var endUv   = MathUtil.ToUv(tapeLine.EndPosition, targetSizePixels);
                 var startStrokeIndex = tape.StartStrokeIndex;
-                var finishedStrokeIndex = tape.FinishedStrokeIndex; 
+                var strokeCount = tape.AffectedStrokeCount;
+                var isFinished = tape.IsFinished;
                 var tapeColor = tapeLine.Color;
                 WriteTexelRgbaHalf(raw, baseTexel + 0, startUv.x, startUv.y, endUv.x, endUv.y);
-                WriteTexelRgbaHalf(raw, baseTexel + 1, tapeLine.Width, startStrokeIndex, finishedStrokeIndex, 0f);
+                WriteTexelRgbaHalf(raw, baseTexel + 1, tapeLine.Width, startStrokeIndex, strokeCount, isFinished ? 1f : 0f);
                 WriteTexelRgbaHalf(raw, baseTexel + 2, tapeColor.r, tapeColor.g, tapeColor.b, tapeColor.a);
                 WriteTexelRgbaHalf(raw, baseTexel + 3, tapeLine.EdgeSmoothness, tapeLine.EdgeRoundness, 0f, 0f);
             }
-
+            // Sets the current line.
+            if (_painting.CurrentLine != null)
+            {
+                var currentLine = (ArtistPainting.ActiveLineInfo)_painting.CurrentLine;
+                if (currentLine.IsTape)
+                {
+                    var baseTexel = tapeCount * StrokeTexelsPerStroke;
+                    var tapeLine = currentLine.Line;
+                    var startUv = MathUtil.ToUv(tapeLine.StartPosition, targetSizePixels);
+                    var endUv   = MathUtil.ToUv(tapeLine.EndPosition, targetSizePixels);
+                    var startStrokeIndex = _painting.StrokeCount;
+                    var tapeColor = tapeLine.Color;
+                    WriteTexelRgbaHalf(raw, baseTexel + 0, startUv.x, startUv.y, endUv.x, endUv.y);
+                    WriteTexelRgbaHalf(raw, baseTexel + 1, tapeLine.Width, startStrokeIndex, 0f, 0f);
+                    WriteTexelRgbaHalf(raw, baseTexel + 2, tapeColor.r, tapeColor.g, tapeColor.b, tapeColor.a);
+                    WriteTexelRgbaHalf(raw, baseTexel + 3, tapeLine.EdgeSmoothness, tapeLine.EdgeRoundness, 0f, 0f);
+                }
+            }
             _tapeTex.Apply(false, false);
         }
 
@@ -347,8 +383,17 @@ namespace GGJ2026.Painting
             {
                 return;
             }
-            var strokeCount = Mathf.Min(_painting.StrokeCount, MaxStrokes);
-            var tapeCount = Mathf.Min(_painting.TapeCount, MaxTapes);
+
+            var additionalStrokeCount = 0;
+            var additionalTapeCount = 0;
+            if (_painting.CurrentLine != null)
+            {
+                var casted = (ArtistPainting.ActiveLineInfo)_painting.CurrentLine;
+                additionalTapeCount += casted.IsTape ? 1 : 0;
+                additionalStrokeCount += !casted.IsTape ? 1 : 0;
+            }
+            var strokeCount = Mathf.Min(_painting.StrokeCount + additionalStrokeCount, MaxStrokes);
+            var tapeCount = Mathf.Min(_painting.TapeCount + additionalTapeCount, MaxTapes);
             _renderPassMaterial.SetTexture(StrokeTexId, _strokeTex);
             _renderPassMaterial.SetFloat(StrokeCountId, strokeCount);
             _renderPassMaterial.SetTexture(TapeTexId, _tapeTex);
@@ -358,8 +403,7 @@ namespace GGJ2026.Painting
                     _targetRT.width,
                     _targetRT.height,
                     1f / _targetRT.width,
-                    1f / _targetRT.height
-                ));
+                    1f / _targetRT.height));
             _renderPassMaterial.SetColor(BackgroundId, _background);
         }
 

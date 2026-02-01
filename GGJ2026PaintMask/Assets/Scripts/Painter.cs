@@ -251,7 +251,7 @@ namespace GGJ2026.Painting
             {
                 return;
             }
-            var tapeAt = painting.GetTapeIndexAt((Vector2)artistCanvasPosition, 1.0f);
+            var tapeAt = painting.GetClosestTapeIndexAt((Vector2)artistCanvasPosition, 1.0f);
             if (tapeAt == -1)
             {
                 return;
@@ -313,10 +313,12 @@ namespace GGJ2026.Painting
         void EndRemoveTape()
         {
             var currentPainting = CurrentPainting;
-            if (currentPainting == null || !currentPainting.IsInitialized)
+            if (currentPainting == null || 
+                !currentPainting.IsInitialized || _currentRemovedTapeIndex == -1)
             {
                 return;
             }
+            paintInputMode = PaintInputMode.OPEN;
             currentPainting.TryRemoveTape(_currentRemovedTapeIndex);
             _currentRemovedTapeIndex = -1;
             Debug.Log("ending input for tape removal");

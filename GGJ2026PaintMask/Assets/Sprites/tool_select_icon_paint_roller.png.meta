@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -126,7 +126,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: tool_select_icon_paint_roller_0
+      name: tool_select_icon_paint_roller
       rect:
         serializedVersion: 2
         x: 483
@@ -134,7 +134,7 @@ TextureImporter:
         width: 1117
         height: 1114
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      tool_select_icon_paint_roller_0: -3071127300604565758
+      tool_select_icon_paint_roller: -3071127300604565758
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

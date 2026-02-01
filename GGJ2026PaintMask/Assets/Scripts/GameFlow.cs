@@ -1,11 +1,35 @@
 using UnityEngine;
 using TMPro;
-using System.Collections.Generic;
 
 namespace GGJ2026.Painting
 {
     public class GameFlow : MonoBehaviour
     {
+        [System.Serializable]
+        private struct TimerRef
+        {
+            [SerializeField]
+            private GameObject gameObjectRef;
+            [SerializeField]
+            private TMP_Text textRef;
+
+            public void SetVisible(bool isVisible)
+            {
+                if (gameObjectRef)
+                {
+                    gameObjectRef.SetActive(isVisible);
+                }
+            }
+
+            public void SetText(string text)
+            {
+                if (textRef)
+                {
+                    textRef.text = text;
+                }
+            }
+        }
+        
         [SerializeField, Tooltip("The painting width.")]
         private int paintingWidth;
         [SerializeField, Tooltip("The painting height")]
@@ -13,10 +37,12 @@ namespace GGJ2026.Painting
         [Space]
         [SerializeField, Tooltip("The artist canvas component.")]
         private ArtistCanvasComponent canvasComponent;
-        
+
         public Painter painter;
         public ToolSelectButtonGroup toolSelectButtons;
-        public GameObject timer;
+
+        [SerializeField, Tooltip("The timer reference.")]
+        private TimerRef timerRef;
         public AudioManager audio;
 
         //timer for countdown to round end
@@ -111,7 +137,7 @@ namespace GGJ2026.Painting
 
         void StartTimer()
         {
-            timer.SetActive(true);
+            timerRef.SetVisible(true);
             var currentPlayerTimeLimit = _round?.CurrentPlayerTimeLimit ?? 0.0f;
             timeRemaining = currentPlayerTimeLimit;
             Debug.Log("clock has been started! This many seconds on the clock: " + timeRemaining);
@@ -147,7 +173,7 @@ namespace GGJ2026.Painting
         void SetTimerText()
         {
             int timerInteger = (int)timeRemaining;
-            timer.transform.Find("TimerText").GetComponent<TMP_Text>().text = timerInteger.ToString();
+            timerRef.SetText(timerInteger.ToString());
         }
 
         #endregion
@@ -189,7 +215,7 @@ namespace GGJ2026.Painting
 
         void DisableTimer()
         {
-            timer.SetActive(false);
+            timerRef.SetVisible(false);
         }
 
         void DisableToolButtons()

@@ -14,10 +14,11 @@ namespace GGJ2026.Painting
             {
                 return null;
             }
-            var result = RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 rectTransform, screenPoint, eventCamera, out var localPoint);
             var rect = rectTransform.rect;
-            localPoint += rect.size;
+            var result = rect.Contains(localPoint);
+            localPoint += (rect.size * 0.5f);
             if (!result && !clampToCanvas)
             {
                 return null;

@@ -70,7 +70,7 @@ namespace GGJ2026.Painting
         {
             var canvasImageRect = CanvasImageRect;
             var normalized = !canvasImageRect ? null : 
-                MouseUtil.TryGetNormalizedLocalPointInRect(canvasImageRect, mouseScreenPosition, Camera.main, clampToCanvas);
+                MouseUtil.TryGetNormalizedLocalPointInRect(canvasImageRect, mouseScreenPosition, null, clampToCanvas);
             var painting = Painting;
             if (normalized == null || painting == null)
             {

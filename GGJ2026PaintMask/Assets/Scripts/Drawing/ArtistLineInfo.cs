@@ -31,7 +31,8 @@ namespace GGJ2026.Painting
             EdgeRoundness = inEdgeRoundness ?? CDefaultEdgeRoundness;
         }
         
-        public readonly bool IsPositionInStroke(in Vector2 position, float radiusLeniency = 0.0f)
+        public readonly bool IsPositionInStroke(in Vector2 position, float radiusLeniency,
+            out float distanceSqr)
         {
             var halfStrokeWidth = (Width * 0.5f) + radiusLeniency;
             var additionalPosition = Direction * radiusLeniency;
@@ -39,16 +40,27 @@ namespace GGJ2026.Painting
             var newEndPosition = EndPosition + additionalPosition;
             var closestPointOnSegment =
                 (Vector2)MathUtil.GetClosestPointOnLineSegment(position, newStartPosition, newEndPosition);
-            var sqrDistance = Vector2.SqrMagnitude(closestPointOnSegment - position);
+            distanceSqr = Vector2.SqrMagnitude(closestPointOnSegment - position);
             // The distance 
-            if (sqrDistance > (halfStrokeWidth * halfStrokeWidth))
+            if (distanceSqr > (halfStrokeWidth * halfStrokeWidth))
             {
                 return false;
             }
-            var closestPointToPosition = position - closestPointOnSegment;
-            var dotProduct = Vector2.Dot(Direction, closestPointToPosition.normalized);
-            // This means that the dot product is in the same direction and we are now good.
-            return dotProduct >= 0.0f;
+            if (closestPointOnSegment == newStartPosition)
+            {
+                var closestPointToPosition = position - closestPointOnSegment;
+                var dotProduct = Vector2.Dot(Direction, closestPointToPosition.normalized);
+                // This means that the dot product is in the same direction and we are now good.
+                return dotProduct >= 0.0f;
+            }
+            if (closestPointOnSegment == newEndPosition)
+            {
+                var closestPointToPosition = position - closestPointOnSegment;
+                var dotProduct = Vector2.Dot(-Direction, closestPointToPosition.normalized);
+                // This means that the dot product is in the same direction and we are now good.
+                return dotProduct >= 0.0f;
+            }
+            return true;
         }
     }
 }

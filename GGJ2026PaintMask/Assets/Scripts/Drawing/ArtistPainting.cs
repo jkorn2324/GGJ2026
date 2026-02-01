@@ -12,15 +12,17 @@ namespace GGJ2026.Painting
         {
             public readonly int LineIndex;
             public readonly int StartStrokeIndex;
-            public int FinishedStrokeIndex;
+            public int AffectedStrokeCount;
+            public bool IsFinished;
 
             public readonly bool IsValid => LineIndex != -1;
 
-            public Tape( int lineIndex, int startStrokeIndex, int finishedStrokeIndex)
+            public Tape( int lineIndex, int startStrokeIndex, int affectedStrokeCount, bool isFinished)
             {
                 LineIndex = lineIndex;
                 StartStrokeIndex = startStrokeIndex;
-                FinishedStrokeIndex = finishedStrokeIndex;
+                AffectedStrokeCount = affectedStrokeCount;
+                IsFinished = isFinished;
             }
         }
 
@@ -192,23 +194,36 @@ namespace GGJ2026.Painting
         /// </summary>
         /// <param name="paintingPosition">The position.</param>
         /// <param name="radiusLeniency">The radius leniency.</param>
+        /// <param name="filterOnlyActiveTape">Determines whether to only filter active tape.</param>
         /// <returns>The tape.</returns>
-        public int GetTapeIndexAt(in Vector2 paintingPosition, float radiusLeniency = 0.0f)
+        public int GetClosestTapeIndexAt(in Vector2 paintingPosition, float radiusLeniency = 0.0f, bool filterOnlyActiveTape = true)
         {
             if (!IsInitialized)
             {
                 return -1;
             }
+
+            var closestIndex = -1;
+            var closestSqrDistance = float.MaxValue;
             for (var tapeIndex = 0; tapeIndex < TapeCount; tapeIndex++)
             {
                 var tape = _tapeIndices[tapeIndex];
                 var currentLine = _lines[tape.LineIndex];
-                if (currentLine.IsPositionInStroke(paintingPosition, radiusLeniency))
+                if (!currentLine.IsPositionInStroke(paintingPosition, radiusLeniency, out var sqrDistance))
                 {
-                    return tapeIndex;
+                    continue;
+                }
+                if (filterOnlyActiveTape && tape.IsFinished)
+                {
+                    continue;
+                }
+                if (closestIndex == -1 || sqrDistance < closestSqrDistance)
+                {
+                    closestIndex = tapeIndex;
+                    closestSqrDistance = sqrDistance;
                 }
             }
-            return -1;
+            return closestIndex;
         }
         
         public ArtistLineInfo GetLine(int lineIndex)
@@ -271,7 +286,7 @@ namespace GGJ2026.Painting
             if (line.IsTape)
             {
                 var tapeIndex = _tapeIndices?.Count ?? -1;
-                _tapeIndices?.Add(new Tape(lineIndex, strokeIndex, -1));
+                _tapeIndices?.Add(new Tape(lineIndex, strokeIndex, 0, false));
                 OnChanged?.Invoke(this);
                 return new EndLineInfo(tapeIndex, true);
             }
@@ -297,7 +312,7 @@ namespace GGJ2026.Painting
         {
             return (_tapeIndices != null && index >= 0 && index < _tapeIndices.Count)
                 ? _tapeIndices[index]
-                : new Tape(-1, -1, -1);
+                : new Tape(-1, -1, 0, true);
         }
 
         /// <summary>
@@ -316,14 +331,14 @@ namespace GGJ2026.Painting
             {
                 return false;
             }
-            tape.FinishedStrokeIndex = _strokeIndices.Count - 1;
+            var difference = _strokeIndices.Count - 1 - tape.StartStrokeIndex;
+            tape.AffectedStrokeCount = difference;
+            tape.IsFinished = true;
             _tapeIndices[tapeIndex] = tape;
             OnChanged?.Invoke(this);
             return true;
         }
         
         #endregion
-        
-        // TODO: Compare Paintings
     }
 }

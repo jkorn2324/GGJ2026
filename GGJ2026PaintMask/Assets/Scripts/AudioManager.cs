@@ -13,18 +13,16 @@ public class AudioManager : MonoBehaviour
     public float SFX_tape_apply_volume = 1f;
     public float SFX_tape_remove_volume = 1f;
     public float SFX_timer_volume = 1f;
+    
+    [SerializeField]
     private AudioSource source;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    
+    private void Awake()
     {
-        source = this.GetComponent<AudioSource>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        if (!source)
+        {
+            source = GetComponent<AudioSource>();
+        }
     }
 
     public void PlayClickSFX()
