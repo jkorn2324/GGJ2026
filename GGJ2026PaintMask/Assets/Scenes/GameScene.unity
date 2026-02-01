@@ -2037,8 +2037,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameFlow: {fileID: 2094072788}
   artistCanvasRef: {fileID: 1701908974}
-  paintWidth: 50
-  tapeWidth: 25
+  paintWidth: 200
+  tapeWidth: 100
   paintStrokeStartPos: {x: 0, y: 0, z: 0}
   currentColor: {r: 0, g: 0, b: 0, a: 0}
   currentTool: 0
