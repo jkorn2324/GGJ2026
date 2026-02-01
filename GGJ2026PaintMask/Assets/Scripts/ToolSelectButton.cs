@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ToolSelectButton : MonoBehaviour
 {
@@ -13,18 +14,23 @@ public class ToolSelectButton : MonoBehaviour
         //SetupButton();
     }
 
-    /*public void SetupButton(ToolType = null, color = null)
+    public void SetupButton(ToolType toolType, Color color)
     {
+        
 
         switch (type)
         {
             case ToolType.PAINT:
-                break;
+                if (color != null) {
+                    this.GetComponent<Image>().color = color;
+                    buttonColor = color;
+                }
+                    break;
             case ToolType.TAPE:
-                buttonColor = colorSwatch.TAPE;
+                //buttonColor = colorSwatch.TAPE;
                 break;
         }
-    }*/
+    }
 
     // Update is called once per frame
     void Update()

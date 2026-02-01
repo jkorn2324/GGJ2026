@@ -112,11 +112,18 @@ public class Painter : MonoBehaviour
         Debug.Log("initial input has distance of: " + paintStrokeDistance.magnitude);
         if (paintStrokeDistance.magnitude >= Screen.width * startPaintMovementThreshold) 
         {
+
+            //if current tool type is paint or tape
             if (currentTool == ToolSelectButton.ToolType.PAINT || currentTool == ToolSelectButton.ToolType.TAPE)
             {
+                //start movement detection for applying paint or tape
                 StartPaintStroke();
+
+            //if current tool type is remove tape
             }else if (currentTool == ToolSelectButton.ToolType.REMOVE_TAPE)
             {
+                //start movement detection for removing tape
+                //also, check that the mouse click is within range of the end of a piece of tape
                 StartRemoveTape();
             }
         }
@@ -124,7 +131,7 @@ public class Painter : MonoBehaviour
 
     void StartRemoveTape()
     {
-
+        
     }
 
     //Begin Stroke (for both tape & regular strokes)
