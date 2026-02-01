@@ -30,6 +30,8 @@ namespace GGJ2026.Painting
         public Color currentColor;
         public ToolSelectButton.ToolType currentTool;
 
+        public AudioManager audio;
+
         public PaintInputMode paintInputMode;
 
         public float startPaintMovementThreshold = .02f;
@@ -223,6 +225,15 @@ namespace GGJ2026.Painting
                     inIsTape: currentTool == ToolSelectButton.ToolType.TAPE))
             {
                 paintInputMode = PaintInputMode.MOVING;
+                // Plays the paint stroke.
+                if (currentTool == ToolSelectButton.ToolType.PAINT)
+                {
+                    audio.PlayPaintSFX();
+                }
+                else if (currentTool == ToolSelectButton.ToolType.TAPE)
+                {
+                    audio.PlayTapeApplySFX();
+                }
             }
         }
 
@@ -245,6 +256,7 @@ namespace GGJ2026.Painting
             {
                 return;
             }
+            audio.PlayTapeRemoveSFX();
             _currentRemovedTapeIndex = tapeAt;
             Debug.Log("enough input movement to start removing tape");
             paintInputMode = PaintInputMode.MOVING;
