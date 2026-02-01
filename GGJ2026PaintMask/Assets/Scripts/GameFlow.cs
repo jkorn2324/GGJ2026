@@ -79,8 +79,8 @@ namespace GGJ2026.Painting
             _round = Round.New(
                 new Round.InitParams(
                     paintingSize: new Vector2(paintingWidth, paintingHeight),
-                    totalArtistPaintingTimeSecs: 60.0f, 
-                    forgerPaintingTimeSecs: 60.0f, forgersCount: 1,
+                    totalArtistPaintingTimeSecs: 120.0f, 
+                    forgerPaintingTimeSecs: 180.0f, forgersCount: 1,
                     inScoringSettings: scoringSettingsRef));
             _roundListener.OnRoundFinished = OnRoundFinished;
         }
