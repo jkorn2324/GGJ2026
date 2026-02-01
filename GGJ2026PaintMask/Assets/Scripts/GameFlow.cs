@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections;
 
 namespace GGJ2026.Painting
 {
@@ -40,6 +41,7 @@ namespace GGJ2026.Painting
 
         public Painter painter;
         public ToolSelectButtonGroup toolSelectButtons;
+        public GameplayBanner banner;
 
         [SerializeField, Tooltip("The timer reference.")]
         private TimerRef timerRef;
@@ -47,6 +49,14 @@ namespace GGJ2026.Painting
 
         //timer for countdown to round end
         public float timeRemaining;
+
+        //time at the start of the round, before round gameplay starts
+        public float roundPrepTime = 3f;
+
+        //text to display in banner
+        public string roundStartText;
+        public string gameEndTextLeft;
+        public string gameEndTextRight;
 
         //is the game during a round?
         public bool roundActive;
@@ -104,6 +114,18 @@ namespace GGJ2026.Painting
             }
             var player = _round.CurrentPlayer;
             Debug.Log($"preparing round with the player: {player?.PlayerName}");
+
+            //bring up banner to announce round start
+            banner.PullUpBanner(roundStartText, player?.PlayerName);
+
+
+            //StartRoundGameplay();
+            StartCoroutine(WaitToStartRoundGameplay());
+        }
+
+        IEnumerator WaitToStartRoundGameplay()
+        {
+            yield return new WaitForSeconds(roundPrepTime);
             StartRoundGameplay();
         }
 
@@ -116,6 +138,9 @@ namespace GGJ2026.Painting
             //enable input for gaming
             EnablePaintInput();
             roundActive = true;
+
+            //bring down banner
+            banner.BringDownBanner();
 
             var player = _round?.CurrentPlayer;
             Debug.Log("ROUND START! GO " + player?.PlayerName);
@@ -239,6 +264,9 @@ namespace GGJ2026.Painting
         void PrepareEndgame()
         {
             Debug.Log("game over!");
+
+            //bring up banner to announce round start
+            banner.PullUpBanner(gameEndTextLeft, gameEndTextRight);
         }
 
         #endregion
