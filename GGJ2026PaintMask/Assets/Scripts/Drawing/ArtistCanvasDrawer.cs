@@ -34,6 +34,9 @@ namespace GGJ2026.Painting
         private static readonly int BackgroundId  = Shader.PropertyToID("_Background");
 
         private static readonly Shader DrawingShader = Shader.Find("GGJ2026/S_DrawingSinglePass");
+        
+        private static readonly int ClearColorId   = Shader.PropertyToID("_ClearColor");
+        private static readonly Shader ClearShader = Shader.Find("GGJ2026/S_ClearTexturePass");
 
         #endregion
 
@@ -43,16 +46,11 @@ namespace GGJ2026.Painting
             new ObjectPool<ArtistCanvasDrawer>(() => new ArtistCanvasDrawer());
 
         public static ArtistCanvasDrawer New(
-            int width,
-            int height,
-            ArtistPainting painting,
             RenderTextureFormat format = RenderTextureFormat.ARGB32,
             Color? background = null)
         {
-            if (painting == null) return null;
-
             var drawer = Pool.Get();
-            drawer.Initialize(painting, width, height, format, background);
+            drawer.Initialize(format, background);
             return drawer;
         }
 
@@ -69,8 +67,10 @@ namespace GGJ2026.Painting
         #endregion
 
         private ArtistPainting _painting;
+        private ArtistPainting.Listener _paintingListener;
 
-        private Material _material;
+        private Material _renderPassMaterial;
+        private Material _clearMaterial;
         private RenderTexture _targetRT;
 
         private Texture2D _strokeTex;
@@ -82,43 +82,45 @@ namespace GGJ2026.Painting
         private bool _renderDirty = true;
 
         public RenderTexture TargetRT => _targetRT;
+        
+        public ArtistPainting Painting => _painting;
+        
         public bool IsInitialized { get; private set; }
 
-        private ArtistCanvasDrawer() { }
+        private ArtistCanvasDrawer()
+        {
+            _paintingListener.OnChanged = OnPaintingChanged;
+        }
 
         #region lifecycle
 
         private void Initialize(
-            ArtistPainting painting,
-            int width,
-            int height,
             RenderTextureFormat format,
             Color? background)
         {
             if (IsInitialized) return;
 
-            _painting = painting;
             _background = background ?? new Color(0, 0, 0, 0);
 
-            _material = new Material(DrawingShader) { hideFlags = HideFlags.HideAndDontSave };
-            _targetRT = TextureUtil.CreateRenderTexture(width, height, format);
+            _renderPassMaterial = new Material(DrawingShader) { hideFlags = HideFlags.HideAndDontSave };
+            _clearMaterial = new Material(ClearShader) { hideFlags = HideFlags.HideAndDontSave };
+            _targetRT = TextureUtil.CreateRenderTexture(16, 16, format);
 
             AllocateDataTextures();
-
             IsInitialized = true;
+            SetPainting(null);
         }
 
         private void DeInitialize()
         {
             if (!IsInitialized) return;
 
-            _painting = null;
-
+            SetPainting(null);
             TextureUtil.ReleaseRenderTexture(ref _targetRT);
-
             ObjectUtil.ReleaseObject(ref _strokeTex);
             ObjectUtil.ReleaseObject(ref _tapeTex);
-            ObjectUtil.ReleaseObject(ref _material);
+            ObjectUtil.ReleaseObject(ref _renderPassMaterial);
+            ObjectUtil.ReleaseObject(ref _clearMaterial);
 
             IsInitialized = false;
         }
@@ -145,16 +147,65 @@ namespace GGJ2026.Painting
         }
 
         #endregion
+        
+        #region internals
+        
+        private void OnPaintingChanged(ArtistPainting obj)
+        {
+            if (!IsInitialized)
+            {
+                return;
+            }
+            // Resizes the render texture.
+            if (_targetRT)
+            {
+                var prevWidth = _targetRT.width;
+                var prevHeight = _targetRT.height;
+                var paintingSize = obj.PaintingSize;
+                if (!Mathf.Approximately(paintingSize.x, prevWidth)
+                    || !Mathf.Approximately(paintingSize.y, prevHeight))
+                {
+                    Resize(Mathf.RoundToInt(paintingSize.x), 
+                        Mathf.RoundToInt(paintingSize.y), _targetRT.format);
+                }
+            }
+            else
+            {
+                var paintingSize = obj.PaintingSize;
+                Resize(Mathf.RoundToInt(paintingSize.x), 
+                    Mathf.RoundToInt(paintingSize.y), RenderTextureFormat.ARGB32);
+            }
+            MarkDirty();
+        }
+        
+        #endregion
 
         #region public api
 
-        public void Resize(int width, int height, RenderTextureFormat format)
+        /// <summary>
+        /// Sets the painting.
+        /// </summary>
+        /// <param name="painting">The painting.</param>
+        public void SetPainting(ArtistPainting painting)
+        {
+            if (!IsInitialized)
+            {
+                return;
+            }
+            var prev = _painting;
+            _painting = painting;
+            if (prev != painting)
+            {
+                _paintingListener.DeInitialize(prev);
+                _paintingListener.Initialize(painting, invokeFunctions: true);
+            }
+        }
+
+        private void Resize(int width, int height, RenderTextureFormat format)
         {
             if (!IsInitialized) return;
-
             TextureUtil.ReleaseRenderTexture(ref _targetRT);
             _targetRT = TextureUtil.CreateRenderTexture(width, height, format);
-
             _renderDirty = true;
         }
 
@@ -163,7 +214,7 @@ namespace GGJ2026.Painting
             _background = color;
             _renderDirty = true;
         }
-
+        
         public void MarkDirty()
         {
             _dataDirty = true;
@@ -175,11 +226,7 @@ namespace GGJ2026.Painting
         /// </summary>
         public void Render(bool force = false)
         {
-            if (!IsInitialized || _painting == null || !_painting.IsInitialized)
-            {
-                return;
-            }
-            if (!force && !_renderDirty)
+            if (!IsInitialized || (!force && !_renderDirty))
             {
                 return;
             }
@@ -188,8 +235,15 @@ namespace GGJ2026.Painting
                 UploadDataTextures();
                 _dataDirty = false;
             }
-            BindMaterialUniforms();
-            Graphics.Blit(null, _targetRT, _material);
+            if (_painting != null && _painting.IsInitialized)
+            {
+                BindMaterialUniforms();
+                Graphics.Blit(null, _targetRT, _renderPassMaterial);
+                _renderDirty = false;
+                return;
+            }
+            _clearMaterial.SetColor(ClearColorId, Color.clear);
+            Graphics.Blit(null, _targetRT, _clearMaterial);
             _renderDirty = false;
         }
 
@@ -199,10 +253,6 @@ namespace GGJ2026.Painting
 
         private void UploadDataTextures()
         {
-            if (_painting == null || !_painting.IsInitialized)
-            {
-                return;
-            }
             if (!_strokeTex || !_tapeTex || !_targetRT)
             {
                 return;
@@ -223,6 +273,11 @@ namespace GGJ2026.Painting
             var raw = _strokeTex.GetRawTextureData<Half>();
             TextureUtil.ClearPixels<Half>(_strokeTex);
 
+            if (_painting == null || !_painting.IsInitialized)
+            {
+                _strokeTex.Apply(false, false);
+                return;
+            }
             var strokeCount = Mathf.Min(_painting.StrokeCount, MaxStrokes);
             for (var strokeIndex = 0; strokeIndex < strokeCount; strokeIndex++)
             {
@@ -257,6 +312,11 @@ namespace GGJ2026.Painting
             var raw = _tapeTex.GetRawTextureData<Half>();
             TextureUtil.ClearPixels<Half>(_tapeTex);
 
+            if (_painting == null || !_painting.IsInitialized)
+            {
+                _tapeTex.Apply(false, false);
+                return;
+            }
             var tapeCount = Mathf.Min(_painting.TapeCount, MaxTapes);
             for (var tapeIndex = 0; tapeIndex < tapeCount; tapeIndex++)
             {
@@ -283,20 +343,24 @@ namespace GGJ2026.Painting
 
         private void BindMaterialUniforms()
         {
+            if (_painting == null || !_painting.IsInitialized)
+            {
+                return;
+            }
             var strokeCount = Mathf.Min(_painting.StrokeCount, MaxStrokes);
             var tapeCount = Mathf.Min(_painting.TapeCount, MaxTapes);
-            _material.SetTexture(StrokeTexId, _strokeTex);
-            _material.SetFloat(StrokeCountId, strokeCount);
-            _material.SetTexture(TapeTexId, _tapeTex);
-            _material.SetFloat(TapeCountId, tapeCount);
-            _material.SetVector(TargetSizeId,
+            _renderPassMaterial.SetTexture(StrokeTexId, _strokeTex);
+            _renderPassMaterial.SetFloat(StrokeCountId, strokeCount);
+            _renderPassMaterial.SetTexture(TapeTexId, _tapeTex);
+            _renderPassMaterial.SetFloat(TapeCountId, tapeCount);
+            _renderPassMaterial.SetVector(TargetSizeId,
                 new Vector4(
                     _targetRT.width,
                     _targetRT.height,
                     1f / _targetRT.width,
                     1f / _targetRT.height
                 ));
-            _material.SetColor(BackgroundId, _background);
+            _renderPassMaterial.SetColor(BackgroundId, _background);
         }
 
         #endregion

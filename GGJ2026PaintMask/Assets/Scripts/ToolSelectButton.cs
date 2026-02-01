@@ -1,70 +1,121 @@
+using System;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class ToolSelectButton : MonoBehaviour
+namespace GGJ2026.Painting
 {
-
-    public enum ToolType {PAINT, TAPE, REMOVE_TAPE, UNDO, RESET}
-    public ToolType type;
-    public ColorSwatch colorSwatch;
-    public Color buttonColor;
-
-    public float hoverDistance;
-    public float hoverLoopTime;
-    private float hoverTimer;
-    public bool activeTool;
-    public Vector3 startPosition;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class ToolSelectButton : MonoBehaviour
     {
-        SetupButton();
-    }
-
-    public void SetupButton()
-    {
-        startPosition = this.transform.position;   
-
-        /*switch (type)
+        public enum ToolType
         {
-            case ToolType.PAINT:
-                if (color != null) {
-                    this.GetComponent<Image>().color = color;
-                    buttonColor = color;
-                }
-                    break;
-            case ToolType.TAPE:
-                //buttonColor = colorSwatch.TAPE;
-                break;
-        }*/
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (activeTool)
-        {
-            HoverActiveTool();
+            PAINT,
+            TAPE,
+            REMOVE_TAPE,
+            UNDO,
+            RESET
         }
-    }
 
-    void HoverActiveTool()
-    {
-        float yPos = Mathf.Sin(hoverTimer * hoverLoopTime * Mathf.PI * 2f) * hoverDistance;
-        this.transform.position = new Vector3(this.transform.position.x, startPosition.y + yPos, this.transform.position.z);
-        hoverTimer += Time.deltaTime;
-    }
+        [SerializeField, Tooltip("The button group reference.")]
+        private ToolSelectButtonGroup buttonGroupRef;
 
-    public void SetActiveTool()
-    {
-        hoverTimer = 0;
-        this.activeTool = true;
-        this.transform.parent.GetComponent<ToolSelectButtonGroup>().DeactivateOtherToolButtons(this.transform);
-    }
+        [SerializeField, Tooltip("The button reference.")]
+        private Button buttonRef;
 
-    public void SetInactiveTool()
-    {
-        this.activeTool = false;
-        this.transform.position = startPosition;
+        public ToolType type;
+        public Color buttonColor;
+
+        public float hoverDistance;
+        public float hoverLoopTime;
+        private float hoverTimer;
+        public bool activeTool;
+        public Vector3 startPosition;
+        
+        private UnityAction _onClick;
+
+        private void Awake()
+        {
+            _onClick = OnButtonClicked;
+            if (!buttonGroupRef)
+            {
+                buttonGroupRef = GetComponentInParent<ToolSelectButtonGroup>();
+            }
+        }
+
+        private void Start()
+        {
+            SetupButton();
+        }
+
+        private void OnEnable()
+        {
+            if (buttonRef)
+            {
+                buttonRef.onClick?.AddListener(_onClick);
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (buttonRef)
+            {
+                buttonRef.onClick?.RemoveListener(_onClick);
+            }
+        }
+
+        private void OnButtonClicked()
+        {
+            SetActiveTool();
+        }
+
+        public void SetupButton()
+        {
+            startPosition = this.transform.position;   
+
+            /*switch (type)
+            {
+                case ToolType.PAINT:
+                    if (color != null) {
+                        this.GetComponent<Image>().color = color;
+                        buttonColor = color;
+                    }
+                        break;
+                case ToolType.TAPE:
+                    //buttonColor = colorSwatch.TAPE;
+                    break;
+            }*/
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            if (activeTool)
+            {
+                HoverActiveTool();
+            }
+        }
+
+        void HoverActiveTool()
+        {
+            float yPos = Mathf.Sin(hoverTimer * hoverLoopTime * Mathf.PI * 2f) * hoverDistance;
+            this.transform.position = new Vector3(this.transform.position.x, startPosition.y + yPos, this.transform.position.z);
+            hoverTimer += Time.deltaTime;
+        }
+
+        public void SetActiveTool()
+        {
+            hoverTimer = 0;
+            activeTool = true;
+            if (buttonGroupRef)
+            {
+                buttonGroupRef.SetToolSelected(this);
+            }
+        }
+
+        public void SetInactiveTool()
+        {
+            this.activeTool = false;
+            this.transform.position = startPosition;
+        }
     }
 }

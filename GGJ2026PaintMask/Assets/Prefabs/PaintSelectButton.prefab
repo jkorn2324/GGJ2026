@@ -221,9 +221,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec8ac1cdbef649549b40e0564aaaf3c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  buttonGroupRef: {fileID: 0}
+  buttonRef: {fileID: 7914330310531519713}
   type: 0
-  colorSwatch: {fileID: 0}
-  buttonColor: {r: 0, g: 0, b: 0, a: 0}
+  buttonColor: {r: 0, g: 0, b: 0, a: 1}
   hoverDistance: 0
   hoverLoopTime: 0
   activeTool: 0

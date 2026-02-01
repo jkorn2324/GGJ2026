@@ -1,27 +1,38 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public class ToolSelectButtonGroup : MonoBehaviour
+namespace GGJ2026.Painting
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class ToolSelectButtonGroup : MonoBehaviour
     {
+        [SerializeField, Tooltip("The painter reference.")]
+        private Painter painterRef;
+        [SerializeField, Tooltip("The tool buttons.")]
+        private List<ToolSelectButton> toolButtons;
         
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public void DeactivateOtherToolButtons(Transform activeTool)
-    {
-        foreach(Transform toolButton in transform)
+        public void SetToolSelected(ToolSelectButton activeTool)
         {
-            if(toolButton != activeTool)
+            if (painterRef)
             {
-                toolButton.GetComponent<ToolSelectButton>().SetInactiveTool();
+                painterRef.SelectTool(activeTool);
+            }
+            if (toolButtons == null)
+            {
+                return;
+            }
+            for (var index = 0; index < toolButtons.Count; index++)
+            {
+                var tool = toolButtons[index];
+                if (!tool)
+                {
+                    continue;
+                }
+                if (activeTool != tool)
+                {
+                    tool.SetInactiveTool();
+                }
             }
         }
     }
 }
+

@@ -59,6 +59,8 @@ namespace GGJ2026.Painting
         public Round CurrentRound { get; private set; }
 
         public bool IsInitialized { get; private set; } = false;
+        
+        private Player() { }
 
         private void Initialize(string name, Type type, Round round)
         {
@@ -79,6 +81,8 @@ namespace GGJ2026.Painting
                 return;
             }
             PlayerName = null;
+            PlayerType = Type.Unknown;
+            CurrentRound = null;
             IsInitialized = false;
         }
     }

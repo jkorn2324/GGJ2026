@@ -72,10 +72,10 @@ namespace GGJ2026.Painting
         
         private static readonly ObjectPool<ArtistPainting> Pool = new ObjectPool<ArtistPainting>(() => new ArtistPainting());
 
-        public static ArtistPainting New()
+        public static ArtistPainting New(in Vector2 paintingSize)
         {
             var painting = Pool.Get();
-            painting.Initialize();
+            painting.Initialize(paintingSize);
             return painting;
         }
 
@@ -90,13 +90,48 @@ namespace GGJ2026.Painting
         }
         
         #endregion
+        
+        #region data_structures
+
+        public struct Listener
+        {
+            public System.Action<ArtistPainting> OnChanged;
+            
+            public void Initialize(ArtistPainting painting, bool invokeFunctions = false)
+            {
+                if (painting == null || !painting.IsInitialized)
+                {
+                    return;
+                }
+                painting.OnChanged += OnChanged;
+                if (invokeFunctions)
+                {
+                    OnChanged?.Invoke(painting);
+                }
+            }
+            public void DeInitialize(ArtistPainting painting)
+            {
+                if (painting == null)
+                {
+                    return;
+                }
+                painting.OnChanged -= OnChanged;
+            }
+        }
+        
+        #endregion
+
+        /// <summary>
+        /// Called when the painting has been changed.
+        /// </summary>
+        public event System.Action<ArtistPainting> OnChanged;
 
         private ActiveLineInfo? _currentLine = null;
         private List<ArtistLineInfo> _lines;
         private List<Tape> _tapeIndices;
         private List<Stroke> _strokeIndices;
-        
-        public Vector2 PaintingSize => new Vector2(1200.0f, 720.0f);
+
+        public Vector2 PaintingSize { get; private set; }
         
         public Rect PaintingRect => new Rect(Vector2.zero, PaintingSize);
 
@@ -115,12 +150,13 @@ namespace GGJ2026.Painting
         
         private ArtistPainting() { }
 
-        private void Initialize()
+        private void Initialize(in Vector2 paintingSize)
         {
             if (IsInitialized)
             {
                 return;
             }
+            PaintingSize = paintingSize;
             _lines = ListPool<ArtistLineInfo>.Get();
             _tapeIndices = ListPool<Tape>.Get();
             _strokeIndices = ListPool<Stroke>.Get();
@@ -150,7 +186,30 @@ namespace GGJ2026.Painting
             }
             IsInitialized = false;
         }
-        
+
+        /// <summary>
+        /// Gets the tape at a position.
+        /// </summary>
+        /// <param name="paintingPosition">The position.</param>
+        /// <param name="radiusLeniency">The radius leniency.</param>
+        /// <returns>The tape.</returns>
+        public int GetTapeIndexAt(in Vector2 paintingPosition, float radiusLeniency = 0.0f)
+        {
+            if (!IsInitialized)
+            {
+                return -1;
+            }
+            for (var tapeIndex = 0; tapeIndex < TapeCount; tapeIndex++)
+            {
+                var tape = _tapeIndices[tapeIndex];
+                var currentLine = _lines[tape.LineIndex];
+                if (currentLine.IsPositionInStroke(paintingPosition, radiusLeniency))
+                {
+                    return tapeIndex;
+                }
+            }
+            return -1;
+        }
         
         public ArtistLineInfo GetLine(int lineIndex)
         {
@@ -179,6 +238,7 @@ namespace GGJ2026.Painting
             }
             var artistLineInfo = new ActiveLineInfo(lineInfo, inIsTape);
             _currentLine = artistLineInfo;
+            OnChanged?.Invoke(this);
             return true;
         }
         
@@ -193,6 +253,7 @@ namespace GGJ2026.Painting
             lineInfo.EndPosition = currentPosition;
             line.Line = lineInfo;
             _currentLine = line;
+            OnChanged?.Invoke(this);
             return true;
         }
         
@@ -211,12 +272,24 @@ namespace GGJ2026.Painting
             {
                 var tapeIndex = _tapeIndices?.Count ?? -1;
                 _tapeIndices?.Add(new Tape(lineIndex, strokeIndex, -1));
+                OnChanged?.Invoke(this);
                 return new EndLineInfo(tapeIndex, true);
             }
             _strokeIndices?.Add(new Stroke(lineIndex));
+            OnChanged?.Invoke(this);
             return new EndLineInfo(strokeIndex, false);
         }
-        
+
+        public void Clear()
+        {
+            if (!IsInitialized)
+            {
+                return;
+            }
+            _tapeIndices?.Clear();
+            _strokeIndices?.Clear();
+            _lines?.Clear();
+        }
         
         #region tape
 
@@ -245,6 +318,7 @@ namespace GGJ2026.Painting
             }
             tape.FinishedStrokeIndex = _strokeIndices.Count - 1;
             _tapeIndices[tapeIndex] = tape;
+            OnChanged?.Invoke(this);
             return true;
         }
         
