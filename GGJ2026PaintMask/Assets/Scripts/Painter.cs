@@ -35,7 +35,7 @@ public class Painter : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        paintInputMode = PaintInputMode.OPEN;
+        //paintInputMode = PaintInputMode.OPEN;
         SetPaintTapeDimensions();
     }
 
@@ -52,6 +52,11 @@ public class Painter : MonoBehaviour
         float relativeValue;
         relativeValue = multiplier * paintingCanvas.rect.height;
         return relativeValue;
+    }
+
+    public void SetPaintInputMode(PaintInputMode newPaintInputMode)
+    {
+        paintInputMode = newPaintInputMode;
     }
 
     // Update is called once per frame

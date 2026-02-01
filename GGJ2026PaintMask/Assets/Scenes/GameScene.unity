@@ -781,13 +781,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 677202612}
+  - component: {fileID: 677202613}
   m_Layer: 0
   m_Name: ToolSelectButtons
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &677202612
 Transform:
   m_ObjectHideFlags: 0
@@ -809,6 +810,18 @@ Transform:
   - {fileID: 2068601844}
   m_Father: {fileID: 1243807149}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &677202613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 677202611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04707fc46bf0f8c419bb131f85a27036, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &814558565
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1358,6 +1371,7 @@ GameObject:
   - component: {fileID: 1230586906}
   - component: {fileID: 1230586909}
   - component: {fileID: 1230586910}
+  - component: {fileID: 1230586911}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1509,6 +1523,25 @@ MonoBehaviour:
   tapeWidth: 0.1
   tapeInitialHeight: 0.02
   allowDirectionChangeMidStroke: 1
+--- !u!114 &1230586911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1230586905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5aadb8167c65ad4590fc3a41c7cb211, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerTeams:
+  - {fileID: 11400000, guid: 72c4b52b3a2762b41a3bd6a7f830a75a, type: 2}
+  - {fileID: 11400000, guid: 448f2a696b69d10438e9659b15709193, type: 2}
+  currentPlayerTeam: 0
+  painter: {fileID: 1230586910}
+  toolSelectButtons: {fileID: 677202613}
+  timeRemaining: 0
 --- !u!1 &1243807145
 GameObject:
   m_ObjectHideFlags: 0
