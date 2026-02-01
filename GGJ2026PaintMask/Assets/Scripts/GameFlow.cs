@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using TMPro;
 
@@ -30,6 +31,7 @@ namespace GGJ2026.Painting
             }
         }
         
+        [Header("Painting Reference")]
         [SerializeField, Tooltip("The painting width.")]
         private int paintingWidth;
         [SerializeField, Tooltip("The painting height")]
@@ -37,10 +39,12 @@ namespace GGJ2026.Painting
         [Space]
         [SerializeField, Tooltip("The artist canvas component.")]
         private ArtistCanvasComponent canvasComponent;
-
+        [Space]
         public Painter painter;
         public ToolSelectButtonGroup toolSelectButtons;
-
+        [SerializeField, Tooltip("The scoring settings.")]
+        private ArtistPaintingScoring.ScoringSettings scoringSettingsRef;
+        [Space]
         [SerializeField, Tooltip("The timer reference.")]
         private TimerRef timerRef;
         public AudioManager audio;
@@ -52,6 +56,7 @@ namespace GGJ2026.Painting
         public bool roundActive;
 
         private Round _round;
+        private Round.Listener _roundListener;
 
         /// <summary>
         /// The round.
@@ -64,7 +69,19 @@ namespace GGJ2026.Painting
                 new Round.InitParams(
                     paintingSize: new Vector2(paintingWidth, paintingHeight),
                     totalArtistPaintingTimeSecs: 60.0f, 
-                    forgerPaintingTimeSecs: 60.0f, forgersCount: 1));
+                    forgerPaintingTimeSecs: 60.0f, forgersCount: 1,
+                    inScoringSettings: scoringSettingsRef));
+            _roundListener.OnRoundFinished = OnRoundFinished;
+        }
+
+        private void OnEnable()
+        {
+            _roundListener.Initialize(_round);
+        }
+
+        private void OnDisable()
+        {
+            _roundListener.DeInitialize(_round);
         }
 
         private void OnDestroy()
@@ -199,7 +216,6 @@ namespace GGJ2026.Painting
             {
                 return;
             }
-
             var idx = _round.CurrentPlayerIndex + 1;
             if (idx < _round.TotalPlayers)
             {
@@ -235,10 +251,23 @@ namespace GGJ2026.Painting
         #endregion
 
         #region GAME_END
-
-        void PrepareEndgame()
+        
+        private void OnRoundFinished(Round obj)
         {
-            Debug.Log("game over!");
+            // Gets called when the round has finished calculating the result.
+            var candidateResult = obj.GameResult;
+            if (candidateResult == null)
+            {
+                return;
+            }
+            var result = (Round.Result)candidateResult;
+            // TODO: Reveal the winner.
+        }
+
+        private void PrepareEndgame()
+        {
+            // TODO: Show the images.
+            
         }
 
         #endregion
