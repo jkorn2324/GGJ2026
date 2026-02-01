@@ -287,8 +287,15 @@ namespace GGJ2026.Painting
             {
                 return;
             }
-            var result = (Round.Result)candidateResult;
+
+            StartCoroutine(RevealResults(1.0f, (Round.Result)candidateResult));
             // TODO: Reveal the winner.
+        }
+
+        private IEnumerator RevealResults(float waitTime, Round.Result result)
+        {
+            yield return new WaitForSeconds(waitTime);
+            
         }
 
         private void PrepareEndgame()
@@ -298,8 +305,6 @@ namespace GGJ2026.Painting
                 return;
             }
             _round.SetCurrentPlayer(_round.CurrentPlayerIndex + 1);
-            // TODO: Show the images.
-            Debug.Log("game over!");
             //bring up banner to announce round start
             banner.PullUpBanner(gameEndTextLeft, gameEndTextRight);
         }
