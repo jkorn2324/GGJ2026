@@ -31,6 +31,31 @@ namespace GGJ2026.Painting
                 }
             }
         }
+
+        [System.Serializable]
+        private struct ArtistsRefPainting
+        {
+            [SerializeField, Tooltip("The group reference.")]
+            private GameObject groupRef;
+            [SerializeField, Tooltip("The canvs reference.")]
+            private ArtistCanvasComponent canvasRef;
+
+            public void SetVisible(bool isVisible)
+            {
+                if (groupRef)
+                {
+                    groupRef.SetActive(isVisible);
+                }
+            }
+
+            public void SetPainting(ArtistPainting painting)
+            {
+                if (canvasRef)
+                {
+                    canvasRef.SetPainting(painting);
+                }
+            }
+        }
         
         [Header("Painting Reference")]
         [SerializeField, Tooltip("The painting width.")]
@@ -47,6 +72,11 @@ namespace GGJ2026.Painting
         private ArtistPaintingScoring.ScoringSettings scoringSettingsRef;
         [Space]
         public GameplayBanner banner;
+        [Space] 
+        [SerializeField, Tooltip("The reveal results view.")]
+        private RevealResultsView revealResultsView;
+        [SerializeField, Tooltip("The forger artist painting reference.")]
+        private ArtistsRefPainting forgerArtistPaintingRef;
 
         [SerializeField, Tooltip("The timer reference.")]
         private TimerRef timerRef;
@@ -126,6 +156,12 @@ namespace GGJ2026.Painting
                 _round.SetCurrentPlayer(_round.CurrentPlayerIndex + 1);
             }
 
+            // Updates the painting so that the forgers can reference it.
+            var currentPlayer = _round.CurrentPlayer;
+            var shouldRevealArtistRef = currentPlayer != null && currentPlayer.PlayerType == Player.Type.Forger;
+            forgerArtistPaintingRef.SetPainting(shouldRevealArtistRef ? _round.ArtistPainting : null);
+            forgerArtistPaintingRef.SetVisible(shouldRevealArtistRef);
+            
             if (canvasComponent)
             {
                 canvasComponent.SetPainting(_round.CurrentPainting);
@@ -278,24 +314,25 @@ namespace GGJ2026.Painting
 
         #region GAME_END
         
-        private void OnRoundFinished(Round obj)
+        private void OnRoundFinished(Round round)
         {
             Debug.Log("Round has finished.");
             // Gets called when the round has finished calculating the result.
-            var candidateResult = obj.GameResult;
-            if (candidateResult == null)
-            {
-                return;
-            }
-
-            StartCoroutine(RevealResults(1.0f, (Round.Result)candidateResult));
-            // TODO: Reveal the winner.
+            StartCoroutine(RevealResults(0.5f, round));
         }
 
-        private IEnumerator RevealResults(float waitTime, Round.Result result)
+        private IEnumerator RevealResults(float waitTime, Round round)
         {
             yield return new WaitForSeconds(waitTime);
-            
+            if (revealResultsView && round != null)
+            {
+                var result = round.GameResult;
+                if (result != null)
+                {
+                    revealResultsView.SetPaintings(round.ArtistPainting, round.ForgerPainting);
+                    revealResultsView.SetVisible(true, animate: true);
+                }
+            }
         }
 
         private void PrepareEndgame()
