@@ -196,19 +196,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2169127874482164181}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 455681420411041840}
-        m_TargetAssemblyTypeName: ToolSelectButton, Assembly-CSharp
-        m_MethodName: SetActiveTool
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &455681420411041840
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -221,6 +209,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec8ac1cdbef649549b40e0564aaaf3c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audio: {fileID: 0}
   buttonGroupRef: {fileID: 0}
   buttonRef: {fileID: 7914330310531519713}
   type: 0

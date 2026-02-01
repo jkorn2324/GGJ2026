@@ -16,6 +16,8 @@ namespace GGJ2026.Painting
             RESET
         }
 
+        [SerializeField, Tooltip("The audio.")]
+        private new AudioManager audio;
         [SerializeField, Tooltip("The button group reference.")]
         private ToolSelectButtonGroup buttonGroupRef;
 
@@ -109,6 +111,10 @@ namespace GGJ2026.Painting
             if (buttonGroupRef)
             {
                 buttonGroupRef.SetToolSelected(this);
+            }
+            if (audio)
+            {
+                audio.PlayClickSFX();
             }
         }
 
