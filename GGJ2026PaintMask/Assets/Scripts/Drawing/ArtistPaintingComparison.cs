@@ -12,8 +12,19 @@
             {
                 return 0.0f;
             }
-            // TODO: Compare by order of comparison
-            // TODO: Compare by pixels?
+
+            // Initialize the original vs compared.
+            var originalPainting = ArtistCanvasDrawer.New();
+            originalPainting.SetPainting(original);
+            originalPainting.Render();
+
+            var comparedPainting = ArtistCanvasDrawer.New();
+            comparedPainting.SetPainting(compared);
+            comparedPainting.Render();
+            
+            // TODO: Implementation - Compare the pixels here.
+            ArtistCanvasDrawer.Release(ref originalPainting);
+            ArtistCanvasDrawer.Release(ref comparedPainting);
             return 0.0f;
         }
     }

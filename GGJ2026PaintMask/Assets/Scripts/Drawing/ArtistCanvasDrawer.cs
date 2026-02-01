@@ -35,9 +35,6 @@ namespace GGJ2026.Painting
 
         private static readonly Shader DrawingShader = Shader.Find("GGJ2026/S_DrawingSinglePass");
         
-        private static readonly int ClearColorId   = Shader.PropertyToID("_ClearColor");
-        private static readonly Shader ClearShader = Shader.Find("GGJ2026/S_ClearTexturePass");
-
         #endregion
 
         #region statics
@@ -70,7 +67,6 @@ namespace GGJ2026.Painting
         private ArtistPainting.Listener _paintingListener;
 
         private Material _renderPassMaterial;
-        private Material _clearMaterial;
         private RenderTexture _targetRT;
 
         private Texture2D _strokeTex;
@@ -103,7 +99,6 @@ namespace GGJ2026.Painting
             _background = background ?? new Color(0, 0, 0, 0);
 
             _renderPassMaterial = new Material(DrawingShader) { hideFlags = HideFlags.HideAndDontSave };
-            _clearMaterial = new Material(ClearShader) { hideFlags = HideFlags.HideAndDontSave };
             _targetRT = TextureUtil.CreateRenderTexture(16, 16, format);
 
             AllocateDataTextures();
@@ -120,7 +115,6 @@ namespace GGJ2026.Painting
             ObjectUtil.ReleaseObject(ref _strokeTex);
             ObjectUtil.ReleaseObject(ref _tapeTex);
             ObjectUtil.ReleaseObject(ref _renderPassMaterial);
-            ObjectUtil.ReleaseObject(ref _clearMaterial);
 
             IsInitialized = false;
         }
@@ -242,8 +236,7 @@ namespace GGJ2026.Painting
                 _renderDirty = false;
                 return;
             }
-            _clearMaterial.SetColor(ClearColorId, Color.clear);
-            Graphics.Blit(null, _targetRT, _clearMaterial);
+            TextureUtil.SetRenderTextureColor(_targetRT, Color.clear);
             _renderDirty = false;
         }
 
