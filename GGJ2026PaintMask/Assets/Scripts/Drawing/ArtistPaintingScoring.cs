@@ -62,7 +62,7 @@ namespace GGJ2026.Painting
         public static float CalculateTapeScore(ArtistPainting original,
             float maximumTapePoints, float perTapeDeduction)
         {
-            return original == null ? 0.0f : Mathf.Max(0.0f, maximumTapePoints - (perTapeDeduction * original.TapeCount));
+            return original == null ? 0.0f : Mathf.Max(0.0f, maximumTapePoints - (perTapeDeduction * original.ActiveTapeCount));
         }
 
         /// <summary>
