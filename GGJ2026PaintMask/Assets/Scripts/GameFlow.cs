@@ -2,6 +2,9 @@ using System;
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using UnityEngine.Events;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace GGJ2026.Painting
 {
@@ -77,6 +80,9 @@ namespace GGJ2026.Painting
         private RevealResultsView revealResultsView;
         [SerializeField, Tooltip("The forger artist painting reference.")]
         private ArtistsRefPainting forgerArtistPaintingRef;
+        [Space] 
+        [SerializeField, Tooltip("The button reference.")]
+        private Button exitButton;
 
         [SerializeField, Tooltip("The timer reference.")]
         private TimerRef timerRef;
@@ -99,6 +105,8 @@ namespace GGJ2026.Painting
         private Round _round;
         private Round.Listener _roundListener;
 
+        private UnityAction _exitPressed;
+
         /// <summary>
         /// The round.
         /// </summary>
@@ -113,16 +121,25 @@ namespace GGJ2026.Painting
                     forgerPaintingTimeSecs: 180.0f, forgersCount: 1,
                     inScoringSettings: scoringSettingsRef));
             _roundListener.OnRoundFinished = OnRoundFinished;
+            _exitPressed = OnExitButtonPressed;
         }
 
         private void OnEnable()
         {
             _roundListener.Initialize(_round);
+            if (exitButton)
+            {
+                exitButton.onClick?.AddListener(_exitPressed);
+            }
         }
 
         private void OnDisable()
         {
             _roundListener.DeInitialize(_round);
+            if (exitButton)
+            {
+                exitButton.onClick?.RemoveListener(_exitPressed);
+            }
         }
 
         private void OnDestroy()
@@ -137,6 +154,16 @@ namespace GGJ2026.Painting
             PrepareRound();
         }
 
+        #endregion
+        
+        #region exit_game
+        
+        private void OnExitButtonPressed()
+        {
+            // Loadss the main menu scene asynchronously.
+            SceneManager.LoadSceneAsync("MainMenu");
+        }
+        
         #endregion
 
         #region ROUND_START
@@ -329,7 +356,18 @@ namespace GGJ2026.Painting
                 var result = round.GameResult;
                 if (result != null)
                 {
-                    revealResultsView.SetPaintings(round.ArtistPainting, round.ForgerPainting);
+                    var castedResult = (Round.Result)result;
+                    var leftView = new RevealResultsView.PaintingReference()
+                    {
+                        DidWin = !castedResult.DidForgersWin,
+                        Painting = round.ArtistPainting
+                    };
+                    var rightView = new RevealResultsView.PaintingReference()
+                    {
+                        DidWin = castedResult.DidForgersWin,
+                        Painting = round.ForgerPainting
+                    };
+                    revealResultsView.SetPaintings(leftView, rightView);
                     revealResultsView.SetVisible(true, animate: true);
                 }
             }

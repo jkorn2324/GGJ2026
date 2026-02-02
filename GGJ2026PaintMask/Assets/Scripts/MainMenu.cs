@@ -14,7 +14,7 @@ public class MainMenu : MonoBehaviour
         Debug.Log("preparing to load game scene");
         fadeScreen.StartFadeIn();
         audio.PlayClickSFX();
-        Invoke("LoadGameScene", waitTime);
+        Invoke(nameof(LoadGameScene), waitTime);
     }
 
     public void PrepareToExitGame()

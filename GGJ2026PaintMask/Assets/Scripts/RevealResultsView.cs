@@ -6,12 +6,47 @@ namespace GGJ2026.Painting
 {
     public class RevealResultsView : MonoBehaviour
     {
+        [System.Serializable]
+        private struct ArtistResultViewRef
+        {
+            [SerializeField]
+            public ArtistCanvasComponent paintingRef;
+            [SerializeField]
+            public GameObject winnerViewRef;
+            [SerializeField]
+            public GameObject loserViewRef;
+
+            public void SetPainting(PaintingReference reference)
+            {
+                if (paintingRef)
+                {
+                    paintingRef.SetPainting(reference.Painting);
+                }
+                if (winnerViewRef)
+                {
+                    winnerViewRef.SetActive(reference.DidWin);
+                }
+                if (loserViewRef)
+                {
+                    loserViewRef.SetActive(!reference.DidWin);
+                }
+            }
+        }
+
+        public struct PaintingReference
+        {
+            public ArtistPainting Painting;
+            public bool DidWin;
+        }
+            
         [Header("References")] 
         [SerializeField, Tooltip("The canvas group reference.")]
         private CanvasGroup revealCanvasGroupRef;
+        [SerializeField, Tooltip("the left painting view.")]
+        private ArtistResultViewRef leftViewRef;
+        [SerializeField, Tooltip("The right painting view.")]
+        private ArtistResultViewRef rightViewRef;
         
-        [SerializeField, Tooltip("The left painting reference.")]
-        private ArtistCanvasComponent leftPaintingRef;
         [SerializeField, Tooltip("The right painting reference.")]
         private ArtistCanvasComponent rightPaintingRef;
 
@@ -69,16 +104,10 @@ namespace GGJ2026.Painting
             }
         }
         
-        public void SetPaintings(ArtistPainting left, ArtistPainting right)
+        public void SetPaintings(PaintingReference left, PaintingReference right)
         {
-            if (leftPaintingRef)
-            {
-                leftPaintingRef.SetPainting(left);
-            }
-            if (rightPaintingRef)
-            {
-                rightPaintingRef.SetPainting(right);
-            }
+            leftViewRef.SetPainting(left);
+            rightViewRef.SetPainting(right);
         }
     }
 }
