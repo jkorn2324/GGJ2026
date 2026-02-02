@@ -149,6 +149,30 @@ namespace GGJ2026.Painting
         public int LineCount => _lines?.Count ?? 0;
         
         public int TapeCount => _tapeIndices?.Count ?? 0;
+
+        /// <summary>
+        /// The Active Tape Count.
+        /// </summary>
+        public int ActiveTapeCount
+        {
+            get
+            {
+                if (_tapeIndices == null)
+                {
+                    return 0;
+                }
+                var totalTapeCount = 0;
+                for (var index = 0; index < _tapeIndices.Count; ++index)
+                {
+                    var tape = _tapeIndices[index];
+                    if (tape.IsFinished)
+                    {
+                        totalTapeCount++;
+                    }
+                }
+                return totalTapeCount;
+            }
+        }
         
         private ArtistPainting() { }
 
